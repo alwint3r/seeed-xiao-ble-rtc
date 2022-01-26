@@ -8,6 +8,7 @@
 PCF8563 pcf;
 
 time_t time_from_rtc(Time &pcfTime);
+static constexpr time_t tz_offset = 7 * 60 * 60;
 
 void setup()
 {
@@ -43,7 +44,12 @@ void setup()
   delay(1000);
 
   Time nowTime = pcf.getTime();
-  time_t t = time_from_rtc(nowTime);  
+  // t is the result of the current time + offset
+  // you might not need offset if you initialy set the time for RTC
+  // using the GMT+0 timezone.
+  // I did it using the compile time which is GMT+7
+  // So offset is necessary
+  time_t t = time_from_rtc(nowTime); 
   Serial.println((long long)t);
 
   set_time(t);
@@ -83,5 +89,5 @@ time_t time_from_rtc(Time &pcfTime)
   timeinfo.tm_sec = pcfTime.second;
   timeinfo.tm_isdst = 0;
 
-  return mktime(&timeinfo);
+  return mktime(&timeinfo) - tz_offset;
 }
